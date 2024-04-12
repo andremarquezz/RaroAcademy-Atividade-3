@@ -1,39 +1,56 @@
 describe("Criação e consultas de usuarios na API Raro", () => {
-
   describe("Casos de sucesso", () => {
-
-    it("Deve retornar status 201 e as informações esperadas para um novo usuário criado com sucesso", () => {
-    
+    it("Deve criar um usuário com sucesso e retornar status 201 e o corpo com as informações esperadas.", () => {
       cy.task("createRandomUser").then((randomUser) => {
         cy.request("POST", "/users", randomUser).then((responseUserCreated) => {
-          const {body, status} = responseUserCreated;
-     
+          const { body, status } = responseUserCreated;
+
           expect(status).to.eq(201);
           expect(body.id).to.be.a("number");
-          
-          cy.fixture("expectedUserCreatedResponse.json").then((expectedUserCreated) => {
+
+          cy.fixture("mockUser.json").then((expectedUserCreated) => {
             expect(body).to.have.all.keys(expectedUserCreated);
           });
         });
       });
     });
-  
-    // it("Deve retornar status 200 e as informações esperadas para um usuário consultado com sucesso", () => {
 
-    //   cy.task("createRandomUser").then((randomUser) => {
-    //     cy.request("POST", "/users", randomUser).then((responseUserCreated) => {
-    //       const {body, status} = responseUserCreated;
+    it("Deve consultar todos os usuários com sucesso e retornar status 200 e uma lista de usuários.", () => {
+      cy.task("createRandomUser").then((randomUser) => {
+        cy.request("POST", "/users", randomUser)
+          .then(() => {
+            return cy.request("POST", `/auth/login`, {
+              email: randomUser.email,
+              password: randomUser.password,
+            });
+          })
+          .then((userLogged) => {
+            const { accessToken } = userLogged.body;
+            Cypress.env("accessToken", accessToken);
 
-    //       cy.request("GET", `/users/${body.id}`).then((user) => {
-
-    //         expect(user.status).to.eq(200);
-    //         cy.fixture("expectedUserCreatedResponse.json").then((expectedUserCreated) => {
-    //           expect(user.body).to.have.all.keys(expectedUserCreated);
-    //         });
-    //       });
-    //     });
-    //   });
-    // })
-
-  })
-})
+            cy.request({
+              method: "PATCH",
+              url: "/users/admin",
+              headers: {
+                Authorization: `Bearer ${Cypress.env("accessToken")}`,
+              },
+            });
+          })
+          .then(() => {
+            cy.request({
+              method: "GET",
+              url: "/users",
+              headers: {
+                Authorization: `Bearer ${Cypress.env("accessToken")}`,
+              },
+            });
+          })
+          .then((listAllUser) => {
+            const { body, status } = listAllUser;
+            expect(status).to.eq(200);
+            expect(body).to.be.an("array");
+          });
+      });
+    });
+  });
+});
