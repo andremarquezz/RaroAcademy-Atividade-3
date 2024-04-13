@@ -16,7 +16,7 @@ describe("Criação de usuario", () => {
   });
 
   describe("Quando a criação falha", () => {
-    it("Deve retornar erro 409(Conflict) ao tentar criar um usuário com email já registrado", () => {
+    it("Deve retornar erro 409 (Conflict) ao tentar criar um usuário com email já registrado", () => {
       cy.createRandomUser().then((randomUser) => {
         cy.request("POST", "/users", randomUser).then(() => {
           cy.request({
@@ -30,6 +30,24 @@ describe("Criação de usuario", () => {
             expect(status).to.eq(409);
             expect(body).to.deep.eq(userMock.errorUserAlreadyExistsResponse);
           });
+        });
+      });
+    });
+
+    it("Deve retornar erro 400 (Bad Request) ao tentar criar um usuário com informações de email incorretas", () => {
+      cy.createRandomUser().then((randomUser) => {
+        randomUser.email = "emailinvalido";
+
+        cy.request({
+          method: "POST",
+          url: "/users",
+          failOnStatusCode: false,
+          body: randomUser,
+        }).then((response) => {
+          const { body, status } = response;
+
+          expect(status).to.eq(400);
+          expect(body).to.deep.eq(userMock.errorUserEmailInvalidResponse);
         });
       });
     });

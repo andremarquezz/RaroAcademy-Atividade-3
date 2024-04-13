@@ -11,4 +11,9 @@ export const userMock = {
     error: "Conflict",
     statusCode: 409,
   },
+  errorUserEmailInvalidResponse: {
+    message: ["email must be an email"],
+    error: "Bad Request",
+    statusCode: 400,
+  },
 };
