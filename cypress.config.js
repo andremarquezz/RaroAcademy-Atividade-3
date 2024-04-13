@@ -1,5 +1,4 @@
 const { defineConfig } = require("cypress");
-const { faker } = require('@faker-js/faker');
 
 module.exports = defineConfig({
   e2e: {
@@ -7,16 +6,6 @@ module.exports = defineConfig({
     env: {
       acessToken: "",
     },
-    setupNodeEvents(on, config) {
-      on("task",{
-        createRandomUser() {
-          return {
-            name: faker.person.fullName(),
-            email: faker.internet.email(),
-            password: "123456",
-          };
-        }
-      })
-    },
+    setupNodeEvents(on, config) {},
   },
 });
