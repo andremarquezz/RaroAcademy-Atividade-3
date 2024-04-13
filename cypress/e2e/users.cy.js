@@ -1,15 +1,17 @@
-import { userMock } from "../fixtures/userMock";
+import { registeredUsersMock, userMock } from "../fixtures/usersMock";
 
-describe("Criação de usuario", () => {
+describe("Criação de usuários", () => {
   describe("Quando a criação é bem sucedida", () => {
     it("Deve criar um usuário com sucesso", () => {
       cy.createRandomUser().then((randomUser) => {
         cy.request("POST", "/users", randomUser).then((responseUserCreated) => {
           const { body, status } = responseUserCreated;
+          delete randomUser.password;
 
           expect(status).to.eq(201);
+          expect(body).to.deep.include(randomUser);
+          expect(body).to.have.property("id");
           expect(body.id).to.be.a("number");
-          expect(body).to.have.all.keys(userMock.defaultUserData);
         });
       });
     });
@@ -28,7 +30,7 @@ describe("Criação de usuario", () => {
             const { body, status } = response;
 
             expect(status).to.eq(409);
-            expect(body).to.deep.eq(userMock.errorUserAlreadyExistsResponse);
+            expect(body).to.deep.eq(userMock.errorAlreadyExists);
           });
         });
       });
@@ -47,54 +49,54 @@ describe("Criação de usuario", () => {
           const { body, status } = response;
 
           expect(status).to.eq(400);
-          expect(body).to.deep.eq(userMock.errorUserEmailInvalidResponse);
+          expect(body).to.deep.eq(userMock.errorEmailInvalid);
         });
       });
     });
   });
 });
 
-describe.skip("Consulta de usuario", () => {
-  describe("Caso de sucesso", () => {
-    it("Deve consultar todos os usuários com sucesso e retornar status 200 e o corpo deve conter uma lista de usuários.", () => {
-      cy.createRandomUser().then((randomUser) => {
-        cy.request("POST", "/users", randomUser)
-          .then(() => {
-            cy.request("POST", `/auth/login`, {
-              email: randomUser.email,
-              password: randomUser.password,
-            });
-          })
-          .then((userLogged) => {
-            const { accessToken } = userLogged.body;
-            Cypress.env("accessToken", accessToken);
+describe("Consulta de usuários", () => {
+  describe("Quando a consulta é bem sucedida", () => {
+    it("Deve consultar todos os usuários com sucesso", () => {
+     cy.login().then(() => {
+        cy.request({
+          method: "GET",
+          url: "/users",
+          headers: {
+            Authorization: `Bearer ${Cypress.env("accessToken")}`}})
+          .then((response) => {
 
-            cy.request({
-              method: "PATCH",
-              url: "/users/admin",
-              headers: {
-                Authorization: `Bearer ${Cypress.env("accessToken")}`,
-              },
-            });
-          })
-          .then(() => {
-            cy.request({
-              method: "GET",
-              url: "/users",
-              headers: {
-                Authorization: `Bearer ${Cypress.env("accessToken")}`,
-              },
-            });
-          })
-          .then((listAllUser) => {
-            const { body, status } = listAllUser;
+            const { body, status } = response;
             expect(status).to.eq(200);
             expect(body).to.be.an("array");
-            body.forEach((user) => {
-              expect(user).to.have.all.keys(userMock.defaultUserData);
+
+            const registeredUsers = body.slice(0, 93);
+
+            registeredUsers.forEach((user, i) => {
+              expect(user).to.deep.eq(registeredUsersMock[i]);
             });
           });
       });
     });
-  });
-});
+
+    it("Deve consultar um usuário específico com sucesso", () => {
+      const userLogged = Cypress.env("userLogged");
+      cy.login()
+          .then(() => {
+            cy.request({
+              method: "GET",
+              url: `/users/${userLogged.id}`,
+              headers: {
+                Authorization: `Bearer ${Cypress.env("accessToken")}`,
+              },
+            });
+          })
+          .then((userById) => {
+            const { body, status } = userById;
+            expect(status).to.eq(200);
+            expect(body).to.be.deep.eq(userLogged);
+          });
+      });
+    });
+  })
