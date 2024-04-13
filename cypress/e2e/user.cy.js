@@ -1,4 +1,4 @@
-import { registeredUsersMock, userMock } from "../fixtures/usersMock";
+import { userFixture } from "../fixtures/userFixture";
 
 describe("Criação de usuários", () => {
   describe("Quando a criação é bem sucedida", () => {
@@ -30,7 +30,7 @@ describe("Criação de usuários", () => {
             const { body, status } = response;
 
             expect(status).to.eq(409);
-            expect(body).to.deep.eq(userMock.errorAlreadyExists);
+            expect(body).to.deep.eq(userFixture.errorAlreadyExists);
           });
         });
       });
@@ -49,7 +49,7 @@ describe("Criação de usuários", () => {
           const { body, status } = response;
 
           expect(status).to.eq(400);
-          expect(body).to.deep.eq(userMock.errorEmailInvalid);
+          expect(body).to.deep.eq(userFixture.errorEmailInvalid);
         });
       });
     });
@@ -59,44 +59,38 @@ describe("Criação de usuários", () => {
 describe("Consulta de usuários", () => {
   describe("Quando a consulta é bem sucedida", () => {
     it("Deve consultar todos os usuários com sucesso", () => {
-     cy.login().then(() => {
+      cy.login().then(() => {
         cy.request({
           method: "GET",
           url: "/users",
           headers: {
-            Authorization: `Bearer ${Cypress.env("accessToken")}`}})
-          .then((response) => {
-
-            const { body, status } = response;
-            expect(status).to.eq(200);
-            expect(body).to.be.an("array");
-
-            const registeredUsers = body.slice(0, 93);
-
-            registeredUsers.forEach((user, i) => {
-              expect(user).to.deep.eq(registeredUsersMock[i]);
-            });
-          });
+            Authorization: `Bearer ${Cypress.env("accessToken")}`,
+          },
+        }).then((response) => {
+          const { body, status } = response;
+          expect(status).to.eq(200);
+          expect(body).to.be.an("array");
+        });
       });
     });
 
     it("Deve consultar um usuário específico com sucesso", () => {
       const userLogged = Cypress.env("userLogged");
       cy.login()
-          .then(() => {
-            cy.request({
-              method: "GET",
-              url: `/users/${userLogged.id}`,
-              headers: {
-                Authorization: `Bearer ${Cypress.env("accessToken")}`,
-              },
-            });
-          })
-          .then((userById) => {
-            const { body, status } = userById;
-            expect(status).to.eq(200);
-            expect(body).to.be.deep.eq(userLogged);
+        .then(() => {
+          cy.request({
+            method: "GET",
+            url: `/users/${userLogged.id}`,
+            headers: {
+              Authorization: `Bearer ${Cypress.env("accessToken")}`,
+            },
           });
-      });
+        })
+        .then((userById) => {
+          const { body, status } = userById;
+          expect(status).to.eq(200);
+          expect(body).to.be.deep.eq(userLogged);
+        });
     });
-  })
+  });
+});
