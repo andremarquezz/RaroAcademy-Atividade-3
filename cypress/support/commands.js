@@ -53,3 +53,15 @@ Cypress.Commands.add("adminLogin", () => {
       });
   });
 });
+
+Cypress.Commands.add("createRandomMovie", () => {
+  const pastDate = faker.date.past();
+  const releaseYearFake = pastDate.getFullYear();
+  return {
+    title: faker.lorem.words(5),
+    genre: faker.lorem.words(5),
+    description: faker.lorem.sentence(),
+    durationInMinutes: faker.number.int(140),
+    releaseYear: releaseYearFake,
+  };
+});

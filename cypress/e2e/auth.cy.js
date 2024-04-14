@@ -1,6 +1,6 @@
 import { authFixture } from "../fixtures/authFixture";
 
-describe("Autenticação", () => {
+describe("Validação da Autenticação", () => {
   describe("Quando a autenticação é bem sucedida", () => {
     it("Deve retornar um token de acesso", () => {
       cy.createRandomUser().then((randomUser) => {
