@@ -8,13 +8,30 @@ Cypress.Commands.add("createRandomUser", () => {
   };
 });
 
-Cypress.Commands.add("login", () => {
+Cypress.Commands.add("userLogin", () => {
   cy.createRandomUser().then((randomUser) => {
     cy.request("POST", "/users", randomUser)
       .then((userCreated) => {
+        Cypress.env("currentUser", userCreated.body);
 
+        cy.request("POST", `/auth/login`, {
+          email: randomUser.email,
+          password: randomUser.password,
+        });
+      })
+      .then((userLogged) => {
+        const { accessToken } = userLogged.body;
+        Cypress.env("accessToken", accessToken);
+      });
+  });
+});
+
+Cypress.Commands.add("adminLogin", () => {
+  cy.createRandomUser().then((randomUser) => {
+    cy.request("POST", "/users", randomUser)
+      .then((userCreated) => {
         userCreated.body.type = 1;
-        Cypress.env("userLogged", userCreated.body);
+        Cypress.env("currentUser", userCreated.body);
 
         cy.request("POST", `/auth/login`, {
           email: randomUser.email,
@@ -34,5 +51,5 @@ Cypress.Commands.add("login", () => {
           },
         });
       });
+  });
 });
-})

@@ -2,7 +2,7 @@ import { userFixture } from "../fixtures/userFixture";
 
 describe("Criação de usuários", () => {
   describe("Quando a criação é bem sucedida", () => {
-    it("Deve criar um usuário com sucesso", () => {
+    it("Deve criar um usuário", () => {
       cy.createRandomUser().then((randomUser) => {
         cy.request("POST", "/users", randomUser).then((responseUserCreated) => {
           const { body, status } = responseUserCreated;
@@ -58,8 +58,8 @@ describe("Criação de usuários", () => {
 
 describe("Consulta de usuários", () => {
   describe("Quando a consulta é bem sucedida", () => {
-    it("Deve consultar todos os usuários com sucesso", () => {
-      cy.login().then(() => {
+    it("Deve consultar todos os usuários", () => {
+      cy.adminLogin().then(() => {
         cy.request({
           method: "GET",
           url: "/users",
@@ -74,13 +74,13 @@ describe("Consulta de usuários", () => {
       });
     });
 
-    it("Deve consultar um usuário específico com sucesso", () => {
-      const userLogged = Cypress.env("userLogged");
-      cy.login()
+    it("Deve consultar um usuário específico", () => {
+      const currentUser = Cypress.env("currentUser");
+      cy.adminLogin()
         .then(() => {
           cy.request({
             method: "GET",
-            url: `/users/${userLogged.id}`,
+            url: `/users/${currentUser.id}`,
             headers: {
               Authorization: `Bearer ${Cypress.env("accessToken")}`,
             },
@@ -89,7 +89,7 @@ describe("Consulta de usuários", () => {
         .then((userById) => {
           const { body, status } = userById;
           expect(status).to.eq(200);
-          expect(body).to.be.deep.eq(userLogged);
+          expect(body).to.be.deep.eq(currentUser);
         });
     });
   });
