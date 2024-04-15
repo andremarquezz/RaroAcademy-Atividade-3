@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import { movieFixture } from "../fixtures/movieFixture";
 
 describe("Cadastro de filmes", () => {
@@ -81,21 +80,38 @@ describe("Cadastro de filmes", () => {
 });
 
 describe("Consulta de filmes", () => {
-  describe("Quando eu tenho filmes cadastrados", () => {
+  describe("Quando existe filmes cadastrados", () => {
     it("Deve retornar uma lista de filmes", () => {
-      cy.request("GET", "/movies").then((responseMovies) => {
-        const { body, status } = responseMovies;
-        expect(status).to.eq(200);
-        expect(body).to.be.a("array");
+      cy.adminLogin().then(() => {
+        cy.createRandomMovie().then((randomMovie) => {
+          cy.request({
+            method: "POST",
+            url: "/movies",
+            body: randomMovie,
+            headers: {
+              Authorization: `Bearer ${Cypress.env("accessToken")}`,
+            },
+          }).then(() => {
+            cy.request("GET", "/movies").then((responseMovies) => {
+              const { body, status } = responseMovies;
+              const expectedType = Object.values(movieFixture.movie).map(
+                (value) => (value === null ? "null" : typeof value)
+              );
 
-        if (body.length > 0) {
-          body.forEach((movie) => {
-            expect(movie).to.have.all.keys(movieFixture.movie);
+              expect(status).to.eq(200);
+              expect(body).to.be.a("array");
+
+              body.forEach((movie) => {
+                Object.entries(movieFixture.movie).forEach(([key], i) => {
+                  expect(movie[key]).to.be.a(expectedType[i]);
+                });
+              });
+            });
           });
-        }
+        });
       });
     });
-    it("Deve retornar um filme específico", () => {
+    it("Deve retornar um filme específico pela consulta por titulo", () => {
       cy.adminLogin().then(() => {
         cy.createRandomMovie().then((randomMovie) => {
           cy.request({
@@ -109,12 +125,35 @@ describe("Consulta de filmes", () => {
             cy.request("GET", `/movies/search?title=${randomMovie.title}`).then(
               (responseMovie) => {
                 const { body, status } = responseMovie;
+                const movie = body[0];
+
+                const expectedType = Object.values(movieFixture.movie).map(
+                  (value) => (value === null ? "null" : typeof value)
+                );
+
                 expect(status).to.eq(200);
-                expect(body[0]).to.deep.include(randomMovie);
-                expect(body[0]).to.have.all.keys(movieFixture.movie);
+                expect(movie).to.deep.include(randomMovie);
+
+                Object.entries(movieFixture.movie).forEach(([key], i) => {
+                  expect(movie[key]).to.be.a(expectedType[i]);
+                });
               }
             );
           });
+        });
+      });
+    });
+    it("Deve retornar um filme especifico pela consulta por id", () => {
+      cy.createAndFetchMovie().then((movie) => {
+        cy.request("GET", `/movies/${movie.id}`).then((responseMovieById) => {
+          const { body, status } = responseMovieById;
+          delete movie.totalRating;
+
+          expect(status).to.eq(200);
+          expect(body).to.deep.include(movie);
+          expect(body.reviews).to.be.an("array");
+          expect(body.criticScore).to.be.a("number");
+          expect(body.audienceScore).to.be.a("number");
         });
       });
     });
