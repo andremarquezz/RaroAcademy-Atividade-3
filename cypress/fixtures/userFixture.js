@@ -26,4 +26,13 @@ export const userFixture = {
     error: "Bad Request",
     statusCode: 400,
   },
+  errorUnauthorized: {
+    message: "Access denied.",
+    error: "Unauthorized",
+    statusCode: 401,
+  },
+  errorForbidden: {
+    message: "Forbidden",
+    statusCode: 403,
+  },
 };

@@ -138,4 +138,33 @@ describe("Consulta de usuários", () => {
         });
     });
   });
+  describe("Quando a consulta falha", () => {
+    it("Deve retornar erro 401 (Unauthorized) ao tentar consultar usuários sem autorização", () => {
+      cy.request({
+        method: "GET",
+        url: "/users",
+        failOnStatusCode: false,
+      }).then((response) => {
+        const { body, status } = response;
+        expect(status).to.eq(401);
+        expect(body).to.deep.eq(userFixture.errorUnauthorized);
+      });
+    });
+    it("Deve retornar erro 403 (Forbidden) ao tentar consultar usuários sem ser administrador", () => {
+      cy.userLogin().then(() => {
+        cy.request({
+          method: "GET",
+          url: "/users",
+          failOnStatusCode: false,
+          headers: {
+            Authorization: `Bearer ${Cypress.env("accessToken")}`,
+          },
+        }).then((response) => {
+          const { body, status } = response;
+          expect(status).to.eq(403);
+          expect(body).to.deep.eq(userFixture.errorForbidden);
+        });
+      });
+    });
+  });
 });
