@@ -65,3 +65,26 @@ Cypress.Commands.add("createRandomMovie", () => {
     releaseYear: releaseYearFake,
   };
 });
+
+Cypress.Commands.add("createAndFetchMovie", () => {
+  cy.adminLogin().then(() => {
+    cy.createRandomMovie().then((randomMovie) => {
+      cy.request({
+        method: "POST",
+        url: "/movies",
+        body: randomMovie,
+        headers: {
+          Authorization: `Bearer ${Cypress.env("accessToken")}`,
+        },
+      }).then(() => {
+        cy.request("GET", `/movies/search?title=${randomMovie.title}`).then(
+          (responseMovie) => {
+            const { body } = responseMovie;
+            const movie = body[0];
+            return movie;
+          }
+        );
+      });
+    });
+  });
+});
