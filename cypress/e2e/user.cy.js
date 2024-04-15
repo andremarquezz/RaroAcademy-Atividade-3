@@ -10,8 +10,9 @@ describe("Criação de usuários", () => {
 
           expect(status).to.eq(201);
           expect(body).to.deep.include(randomUser);
-          expect(body).to.have.property("id");
           expect(body.id).to.be.a("number");
+          expect(body.type).to.eq(0);
+          expect(body.active).to.be.true;
         });
       });
     });
@@ -53,6 +54,40 @@ describe("Criação de usuários", () => {
         });
       });
     });
+    it("Deve retornar erro 400 (Bad Request) ao tentar criar um usuário com senha menor que 6 caracteres", () => {
+      cy.createRandomUser().then((randomUser) => {
+        randomUser.password = "123";
+
+        cy.request({
+          method: "POST",
+          url: "/users",
+          failOnStatusCode: false,
+          body: randomUser,
+        }).then((response) => {
+          const { body, status } = response;
+
+          expect(status).to.eq(400);
+          expect(body).to.deep.eq(userFixture.errorPasswordTooShort);
+        });
+      });
+    });
+    it("Deve retornar erro 400 (Bad Request) ao tentar criar um usuário com senha maior que 12 caracteres", () => {
+      cy.createRandomUser().then((randomUser) => {
+        randomUser.password = "jey12345678910";
+
+        cy.request({
+          method: "POST",
+          url: "/users",
+          failOnStatusCode: false,
+          body: randomUser,
+        }).then((response) => {
+          const { body, status } = response;
+
+          expect(status).to.eq(400);
+          expect(body).to.deep.eq(userFixture.errorPasswordTooLong);
+        });
+      });
+    });
   });
 });
 
@@ -68,8 +103,18 @@ describe("Consulta de usuários", () => {
           },
         }).then((response) => {
           const { body, status } = response;
+          const initialUsers = body.slice(0, 100);
+          const expectedType = Object.values(userFixture.user).map(
+            (value) => typeof value
+          );
           expect(status).to.eq(200);
           expect(body).to.be.an("array");
+
+          initialUsers.forEach((user) => {
+            Object.entries(userFixture.user).forEach(([key], i) => {
+              expect(user[key]).to.be.a(expectedType[i]);
+            });
+          });
         });
       });
     });
