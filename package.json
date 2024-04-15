@@ -1,7 +1,7 @@
 {
   "name": "testes-apicypress-andremarquez",
   "version": "1.0.0",
-  "description": "",
+  "description": "Testes automatizados de API para as funcionalidades de cadastro e consulta de usuarios e filmes em uma aplicação.",
   "main": "index.js",
   "scripts": {
     "test": "cypress open"
