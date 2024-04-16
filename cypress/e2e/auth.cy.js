@@ -11,7 +11,6 @@ describe("Validação da Autenticação", () => {
           }).then((responseAuth) => {
             const { body, status } = responseAuth;
             expect(status).to.eq(200);
-            expect(body).to.have.property("accessToken");
             expect(body.accessToken).to.be.a("string");
           });
         });
