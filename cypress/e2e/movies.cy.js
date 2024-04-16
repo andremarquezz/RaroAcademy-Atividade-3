@@ -23,7 +23,7 @@ describe("Cadastro de filmes", () => {
   });
 
   describe("Quando o cadastro falha", () => {
-    it("Deve retornar erro 400 (Bad Request) ao tentar criar um filme com informações de título incorretas", () => {
+    it("Deve retornar erro 400 (Bad Request) ao tentar criar um filme com informação de título incorreta", () => {
       cy.adminLogin().then(() => {
         cy.createRandomMovie().then((randomMovie) => {
           randomMovie.title = "";
@@ -43,6 +43,89 @@ describe("Cadastro de filmes", () => {
         });
       });
     });
+    it("Deve retornar erro 400 (Bad Request) ao tentar criar um filme com informação de gênero incorreta", () => {
+      cy.adminLogin().then(() => {
+        cy.createRandomMovie().then((randomMovie) => {
+          randomMovie.genre = "";
+          cy.request({
+            method: "POST",
+            url: "/movies",
+            failOnStatusCode: false,
+            body: randomMovie,
+            headers: {
+              Authorization: `Bearer ${Cypress.env("accessToken")}`,
+            },
+          }).then((response) => {
+            const { body, status } = response;
+            expect(status).to.eq(400);
+            expect(body).to.deep.eq(movieFixture.errorGenreInvalid);
+          });
+        });
+      });
+    });
+    it("Deve retornar erro 400 (Bad Request) ao tentar criar um filme com informação de descrição incorreta", () => {
+      cy.adminLogin().then(() => {
+        cy.createRandomMovie().then((randomMovie) => {
+          randomMovie.description = "";
+          cy.request({
+            method: "POST",
+            url: "/movies",
+            failOnStatusCode: false,
+            body: randomMovie,
+            headers: {
+              Authorization: `Bearer ${Cypress.env("accessToken")}`,
+            },
+          }).then((response) => {
+            const { body, status } = response;
+            expect(status).to.eq(400);
+            expect(body).to.deep.eq(movieFixture.errorDescriptionInvalid);
+          });
+        });
+      });
+    });
+
+    it("Deve retornar erro 400 (Bad Request) ao tentar criar um filme com duração em minutos como string", () => {
+      cy.adminLogin().then(() => {
+        cy.createRandomMovie().then((randomMovie) => {
+          randomMovie.durationInMinutes = "";
+          cy.request({
+            method: "POST",
+            url: "/movies",
+            failOnStatusCode: false,
+            body: randomMovie,
+            headers: {
+              Authorization: `Bearer ${Cypress.env("accessToken")}`,
+            },
+          }).then((response) => {
+            const { body, status } = response;
+            expect(status).to.eq(400);
+            expect(body).to.deep.eq(movieFixture.errorDurationInvalid);
+          });
+        });
+      });
+    });
+
+    it("Deve retornar erro 400 (Bad Request) ao tentar criar um filme com ano de lançamento como string", () => {
+      cy.adminLogin().then(() => {
+        cy.createRandomMovie().then((randomMovie) => {
+          randomMovie.releaseYear = "";
+          cy.request({
+            method: "POST",
+            url: "/movies",
+            failOnStatusCode: false,
+            body: randomMovie,
+            headers: {
+              Authorization: `Bearer ${Cypress.env("accessToken")}`,
+            },
+          }).then((response) => {
+            const { body, status } = response;
+            expect(status).to.eq(400);
+            expect(body).to.deep.eq(movieFixture.errorReleaseYearInvalid);
+          });
+        });
+      });
+    });
+
     it("Deve retornar erro 401 (Unauthorized) ao tentar criar um filme sem estar autenticado", () => {
       cy.createRandomMovie().then((randomMovie) => {
         cy.request({
@@ -80,7 +163,7 @@ describe("Cadastro de filmes", () => {
 });
 
 describe("Consulta de filmes", () => {
-  describe("Quando existe filmes cadastrados", () => {
+  describe("Quando a consulta é bem sucedida", () => {
     it("Deve retornar uma lista de filmes", () => {
       cy.adminLogin().then(() => {
         cy.createRandomMovie().then((randomMovie) => {
@@ -156,6 +239,27 @@ describe("Consulta de filmes", () => {
           expect(body.audienceScore).to.be.a("number");
         });
       });
+    });
+  });
+  describe("Quando a consulta falha", () => {
+    it("Deve retornar um corpo vazio quando não encontrar o filme pelo id", () => {
+      cy.request("GET", "/movies/5645646").then((responseMovieById) => {
+        const { body, status } = responseMovieById;
+
+        expect(status).to.eq(200);
+        expect(body).to.be.string;
+        expect(body).to.eq("");
+      });
+    });
+    it("Deve retornar um corpo vazio quando não encontra o filme pelo titulo", () => {
+      cy.request("GET", "movies/search?title=yujfhdgjfgjfgjhfgj").then(
+        (responseMovieById) => {
+          const { body, status } = responseMovieById;
+
+          expect(status).to.eq(200);
+          expect(body).to.be.empty;
+        }
+      );
     });
   });
 });

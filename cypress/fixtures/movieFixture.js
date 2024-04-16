@@ -16,6 +16,38 @@ export const movieFixture = {
     error: "Bad Request",
     statusCode: 400,
   },
+  errorGenreInvalid: {
+    message: [
+      "genre must be longer than or equal to 1 characters",
+      "genre should not be empty",
+    ],
+    error: "Bad Request",
+    statusCode: 400,
+  },
+  errorDescriptionInvalid: {
+    message: [
+      "description must be longer than or equal to 1 characters",
+      "description should not be empty",
+    ],
+    error: "Bad Request",
+    statusCode: 400,
+  },
+  errorDurationInvalid: {
+    message: [
+      "durationInMinutes must be a number conforming to the specified constraints",
+      "durationInMinutes should not be empty",
+    ],
+    error: "Bad Request",
+    statusCode: 400,
+  },
+  errorReleaseYearInvalid: {
+    message: [
+      "releaseYear must be a number conforming to the specified constraints",
+      "releaseYear should not be empty",
+    ],
+    error: "Bad Request",
+    statusCode: 400,
+  },
   errorUnauthorized: {
     message: "Access denied.",
     error: "Unauthorized",
