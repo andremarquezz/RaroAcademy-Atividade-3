@@ -168,3 +168,18 @@ describe("Consulta de usuários", () => {
     });
   });
 });
+describe("Inativação de usuários", () => {
+  it("Deve inativar um usuário", () => {
+    cy.adminLogin().then(() => {
+      cy.request({
+        method: "PATCH",
+        url: "/users/inactivate",
+        headers: {
+          Authorization: `Bearer ${Cypress.env("accessToken")}`,
+        },
+      }).then((response) => {
+        expect(response.body).to.be.empty;
+      });
+    });
+  });
+});
