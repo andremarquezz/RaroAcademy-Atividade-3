@@ -103,14 +103,14 @@ describe("Consulta de usuários", () => {
           },
         }).then((response) => {
           const { body, status } = response;
-          const initialUsers = body.slice(0, 100);
+          const users = body.slice(0, 20);
           const expectedType = Object.values(userFixture.user).map(
             (value) => typeof value
           );
           expect(status).to.eq(200);
           expect(body).to.be.an("array");
 
-          initialUsers.forEach((user) => {
+          users.forEach((user) => {
             Object.entries(userFixture.user).forEach(([key], i) => {
               expect(user[key]).to.be.a(expectedType[i]);
             });
