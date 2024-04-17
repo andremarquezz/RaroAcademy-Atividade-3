@@ -4,7 +4,6 @@ export const movieFixture = {
     title: "string",
     genre: "string",
     description: "string",
-    totalRating: null,
     durationInMinutes: 0,
     releaseYear: 0,
   },
