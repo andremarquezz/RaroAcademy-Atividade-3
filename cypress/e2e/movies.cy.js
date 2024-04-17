@@ -164,7 +164,7 @@ describe("Cadastro de filmes", () => {
 
 describe("Consulta de filmes", () => {
   describe("Quando a consulta é bem sucedida", () => {
-    it.only("Deve retornar uma lista de filmes", () => {
+    it("Deve retornar uma lista de filmes", () => {
       cy.adminLogin().then(() => {
         cy.createRandomMovie().then((randomMovie) => {
           cy.request({
