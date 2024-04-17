@@ -185,7 +185,7 @@ describe("Consulta de filmes", () => {
               expect(status).to.eq(200);
               expect(body).to.be.a("array");
 
-              /* Explicação p/ o prof > Tive um problema onde o meu teste dinâmico de propiedade
+              /* Explicação p/ o prof > Tive um problema onde o meu teste dinâmico de propiedade linha 196 a 201
               passou a quebrar por quê fizeram review de filme, então tive que dividir o teste de propiedade 
                em 2 partes, por default totalRating é null, mas passa a ser number depois de uma review */
 
