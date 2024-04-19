@@ -245,6 +245,19 @@ describe("Consulta de filmes", () => {
         });
       });
     });
+    it("Deve retornar a review de um filme feita por um usuário", () => {
+      const review = {
+        movieId: movie.id,
+        score: "10",
+        reviewText:
+          "Esse filme rumo aos 75 pontos me emocionou, recomendo mto! Me chamem para o elenco do próximo filme!",
+      };
+
+      cy.createReview(review).then((movie) => {
+        delete movie.id;
+        expect(movie.reviews[0]).to.deep.include(review);
+      });
+    });
   });
   describe("Quando a consulta falha", () => {
     it("Deve retornar um corpo vazio quando não encontrar o filme pelo id", () => {
