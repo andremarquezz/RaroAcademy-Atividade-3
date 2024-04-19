@@ -12,6 +12,12 @@ export const movieFixture = {
       "title must be longer than or equal to 1 characters",
       "title should not be empty",
     ],
+
+    error: "Bad Request",
+    statusCode: 400,
+  },
+  errorUpdateTitleInvalid: {
+    message: ["title must be longer than or equal to 1 characters"],
     error: "Bad Request",
     statusCode: 400,
   },
@@ -46,6 +52,11 @@ export const movieFixture = {
     ],
     error: "Bad Request",
     statusCode: 400,
+  },
+  errorMovieNotFound: {
+    message: "Movie not found",
+    error: "Not Found",
+    statusCode: 404,
   },
   errorUnauthorized: {
     message: "Access denied.",
