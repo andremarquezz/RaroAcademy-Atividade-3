@@ -177,18 +177,17 @@ describe("Consulta de filmes", () => {
           }).then(() => {
             cy.request("GET", "/movies").then((responseMovies) => {
               const { body, status } = responseMovies;
-              const movies = body.slice(0, 20);
               const expectedType = Object.values(movieFixture.movie).map(
                 (value) => typeof value
               );
 
               expect(status).to.eq(200);
               expect(body).to.be.a("array");
-              movies.forEach((movie) => {
+              body.forEach((movie) => {
                 expect(movie).to.have.property("totalRating");
               });
 
-              movies.forEach((movie) => {
+              body.forEach((movie) => {
                 delete movie.totalRating;
                 Object.entries(movieFixture.movie).forEach(([key], i) => {
                   expect(movie[key]).to.be.a(expectedType[i]);
@@ -245,17 +244,19 @@ describe("Consulta de filmes", () => {
         });
       });
     });
-    it("Deve retornar a review de um filme feita por um usuário", () => {
-      const review = {
-        movieId: movie.id,
-        score: "10",
-        reviewText:
-          "Esse filme rumo aos 75 pontos me emocionou, recomendo mto! Me chamem para o elenco do próximo filme!",
-      };
+    it.only("Deve retornar a review de um filme feita por um usuário", () => {
+      cy.createReview().then((movie) => {
+        const { body, status } = movie;
+        const user = {
+          id: Cypress.env("currentUser").id,
+          name: Cypress.env("currentUser").name,
+          type: Cypress.env("currentUser").type,
+        };
 
-      cy.createReview(review).then((movie) => {
-        delete movie.id;
-        expect(movie.reviews[0]).to.deep.include(review);
+        console.log(user);
+        expect(status).to.eq(200);
+        expect(body.reviews[0]).to.deep.include(movieFixture.review);
+        expect(body.reviews[0].user).to.deep.eq(user);
       });
     });
   });

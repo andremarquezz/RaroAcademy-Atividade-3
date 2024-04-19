@@ -7,6 +7,11 @@ export const movieFixture = {
     durationInMinutes: 0,
     releaseYear: 0,
   },
+  review: {
+    score: 5,
+    reviewText:
+      "Esse filme rumo aos 75 pontos me emocionou, recomendo mto! Me chamem para o elenco do próximo filme!",
+  },
   errorTitleInvalid: {
     message: [
       "title must be longer than or equal to 1 characters",

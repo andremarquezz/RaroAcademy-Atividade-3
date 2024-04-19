@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import { movieFixture } from "../fixtures/movieFixture";
 
 Cypress.Commands.add("createRandomUser", () => {
   return {
@@ -79,9 +80,7 @@ Cypress.Commands.add("createAndFetchMovie", () => {
       }).then(() => {
         cy.request("GET", `/movies/search?title=${randomMovie.title}`).then(
           (responseMovie) => {
-            const { body } = responseMovie;
-            const movie = body[0];
-            return movie;
+            return responseMovie.body[0];
           }
         );
       });
@@ -89,18 +88,18 @@ Cypress.Commands.add("createAndFetchMovie", () => {
   });
 });
 
-Cypress.Commands.add("createReview", (review) => {
+Cypress.Commands.add("createReview", () => {
   cy.createAndFetchMovie().then((movie) => {
     cy.request({
       method: "POST",
       url: "users/review",
-      body: review,
+      body: { ...movieFixture.review, movieId: movie.id },
       headers: {
         Authorization: `Bearer ${Cypress.env("accessToken")}`,
       },
     }).then(() => {
-      cy.request("GET", `/movies/${movie.movieId}`).then((responseMovie) => {
-        return responseMovie.body;
+      cy.request("GET", `/movies/${movie.id}`).then((responseMovie) => {
+        return responseMovie;
       });
     });
   });
