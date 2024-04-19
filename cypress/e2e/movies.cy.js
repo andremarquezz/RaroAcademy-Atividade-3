@@ -263,6 +263,7 @@ describe("Consulta de filmes", () => {
         expect(body.reviews[0]).to.deep.include(movieFixture.review);
         expect(body.reviews[0].user).to.deep.eq(user);
         expect(body.reviews[0].score).to.be.eq(5);
+        expect(body.audienceScore).to.be.eq(5);
       });
     });
   });
