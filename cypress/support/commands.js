@@ -88,3 +88,20 @@ Cypress.Commands.add("createAndFetchMovie", () => {
     });
   });
 });
+
+Cypress.Commands.add("createReview", (review) => {
+  cy.createAndFetchMovie().then((movie) => {
+    cy.request({
+      method: "POST",
+      url: "users/review",
+      body: review,
+      headers: {
+        Authorization: `Bearer ${Cypress.env("accessToken")}`,
+      },
+    }).then(() => {
+      cy.request("GET", `/movies/${movie.movieId}`).then((responseMovie) => {
+        return responseMovie.body;
+      });
+    });
+  });
+});
