@@ -1,4 +1,5 @@
 import { movieFixture } from "../fixtures/movieFixture";
+import { isWithinOneMinuteDifference } from "../support/utils/movieUtils";
 
 describe("Cadastro de filmes", () => {
   describe("Quando o cadastro é bem sucedido", () => {
@@ -253,10 +254,15 @@ describe("Consulta de filmes", () => {
           type: Cypress.env("currentUser").type,
         };
 
-        console.log(user);
+        const isWithinOneMinute = isWithinOneMinuteDifference(
+          body.reviews[0].updatedAt
+        );
+
         expect(status).to.eq(200);
+        expect(isWithinOneMinute).to.be.true;
         expect(body.reviews[0]).to.deep.include(movieFixture.review);
         expect(body.reviews[0].user).to.deep.eq(user);
+        expect(body.reviews[0].score).to.be.eq(5);
       });
     });
   });
