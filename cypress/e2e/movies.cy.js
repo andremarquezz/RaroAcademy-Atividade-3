@@ -184,11 +184,6 @@ describe("Consulta de filmes", () => {
 
               expect(status).to.eq(200);
               expect(body).to.be.a("array");
-
-              /* Explicação p/ o prof > Tive um problema onde o meu teste dinâmico de propiedade linha 196 a 201
-              passou a quebrar por quê fizeram review de filme, então tive que dividir o teste de propiedade 
-               em 2 partes, por default totalRating é null, mas passa a ser number depois de uma review */
-
               movies.forEach((movie) => {
                 expect(movie).to.have.property("totalRating");
               });
@@ -270,6 +265,74 @@ describe("Consulta de filmes", () => {
           expect(body).to.be.empty;
         }
       );
+    });
+  });
+});
+describe("Atualização de filmes", () => {
+  describe("Quando a atualização é bem sucedida", () => {
+    it("Deve atualizar um filme", () => {
+      cy.createAndFetchMovie().then((movie) => {
+        const newMovie = {
+          ...movie,
+          title: "Novo titulo",
+          genre: "Novo genero",
+          description: "Nova descrição",
+        };
+
+        cy.request({
+          method: "PUT",
+          url: `/movies/${movie.id}`,
+          body: newMovie,
+          headers: {
+            Authorization: `Bearer ${Cypress.env("accessToken")}`,
+          },
+        }).then((responseMovieUpdated) => {
+          const { body, status } = responseMovieUpdated;
+          expect(status).to.eq(204);
+          expect(body).to.be.undefined;
+        });
+      });
+    });
+  });
+  describe("Quando a atualização falha", () => {
+    it("Deve retornar erro 400 (Bad Request) ao tentar atualizar um filme com informação de título incorreta", () => {
+      cy.createAndFetchMovie().then((movie) => {
+        const newMovie = {
+          ...movie,
+          title: "",
+        };
+
+        cy.request({
+          method: "PUT",
+          url: `/movies/${movie.id}`,
+          body: newMovie,
+          failOnStatusCode: false,
+          headers: {
+            Authorization: `Bearer ${Cypress.env("accessToken")}`,
+          },
+        }).then((response) => {
+          const { body, status } = response;
+          expect(status).to.eq(400);
+          expect(body).to.deep.eq(movieFixture.errorUpdateTitleInvalid);
+        });
+      });
+    });
+    it("Deve retornar erro 404 (Not Found) ao tentar atualizar um filme que não existe", () => {
+      cy.createRandomMovie().then((randomMovie) => {
+        cy.request({
+          method: "PUT",
+          url: "/movies/5645646",
+          body: randomMovie,
+          failOnStatusCode: false,
+          headers: {
+            Authorization: `Bearer ${Cypress.env("accessToken")}`,
+          },
+        }).then((response) => {
+          const { body, status } = response;
+          expect(status).to.eq(404);
+          expect(body).to.deep.eq(movieFixture.errorMovieNotFound);
+        });
+      });
     });
   });
 });
