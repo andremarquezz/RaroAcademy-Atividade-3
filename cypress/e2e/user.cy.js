@@ -94,7 +94,7 @@ describe("Consulta de usuários", () => {
             Authorization: `Bearer ${Cypress.env("accessToken")}`,
           },
         }).then(({ body, status }) => {
-          const expectedType = Object.values(userFixture.user).map(
+          const userType = Object.values(userFixture.user).map(
             (value) => typeof value
           );
 
@@ -103,7 +103,7 @@ describe("Consulta de usuários", () => {
 
           body.forEach((user) => {
             Object.entries(userFixture.user).forEach(([key], i) => {
-              expect(user[key]).to.be.a(expectedType[i]);
+              expect(user[key]).to.be.a(userType[i]);
             });
           });
         });

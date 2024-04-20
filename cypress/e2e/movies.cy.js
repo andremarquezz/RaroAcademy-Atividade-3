@@ -170,12 +170,12 @@ describe("Consulta de filmes", () => {
           }).then(() => {
             cy.request("GET", "/movies").then((responseMovies) => {
               const { body, status } = responseMovies;
-              const expectedType = Object.values(movieFixture.movie).map(
+              const movieType = Object.values(movieFixture.movie).map(
                 (value) => typeof value
               );
 
               expect(status).to.eq(200);
-              expect(body).to.be.a("array");
+              expect(body).to.be.an("array");
               body.forEach((movie) => {
                 expect(movie).to.have.property("totalRating");
               });
@@ -183,7 +183,7 @@ describe("Consulta de filmes", () => {
               body.forEach((movie) => {
                 delete movie.totalRating;
                 Object.entries(movieFixture.movie).forEach(([key], i) => {
-                  expect(movie[key]).to.be.a(expectedType[i]);
+                  expect(movie[key]).to.be.a(movieType[i]);
                 });
               });
             });
@@ -206,15 +206,16 @@ describe("Consulta de filmes", () => {
               ({ body, status }) => {
                 const movieBody = body[0];
 
-                const expectedType = Object.values(movieFixture.movie).map(
+                const movieType = Object.values(movieFixture.movie).map(
                   (value) => (value === null ? "null" : typeof value)
                 );
 
                 expect(status).to.eq(200);
+                expect(body).to.be.an("array");
                 expect(movieBody).to.deep.include(randomMovie);
 
                 Object.entries(movieFixture.movie).forEach(([key], i) => {
-                  expect(movie[key]).to.be.a(expectedType[i]);
+                  expect(movieBody[key]).to.be.a(movieType[i]);
                 });
               }
             );
