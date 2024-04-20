@@ -188,7 +188,7 @@ describe("Criação de review pelo usuário", () => {
       });
     });
   });
-  describe.only("Quando a criação falha", () => {
+  describe("Quando a criação falha", () => {
     it("Deve retornar erro 400 (Bad Request) ao tentar criar uma review sem informar o movieId", () => {
       cy.adminLogin().then(() => {
         cy.request({
@@ -307,7 +307,7 @@ describe("Consulta de review feita pelo usuario", () => {
         }).then((response) => {
           const { body, status } = response;
           expect(status).to.eq(200);
-          expect(body).to.be.an("array");
+          expect(body).to.be.an("array"); // redundante???
           expect(body[0].reviewType).to.be.a("number");
           expect(body[0].id).to.be.a("number");
           expect(body[0]).to.deep.include({
