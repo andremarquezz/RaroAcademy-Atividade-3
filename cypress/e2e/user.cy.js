@@ -5,8 +5,7 @@ describe("Criação de usuários", () => {
   describe("Quando a criação é bem sucedida", () => {
     it("Deve criar um usuário", () => {
       cy.createRandomUser().then((randomUser) => {
-        cy.request("POST", "/users", randomUser).then((responseUserCreated) => {
-          const { body, status } = responseUserCreated;
+        cy.request("POST", "/users", randomUser).then(({ body, status }) => {
           delete randomUser.password;
 
           expect(status).to.eq(201);
@@ -28,9 +27,7 @@ describe("Criação de usuários", () => {
             url: "/users",
             failOnStatusCode: false,
             body: randomUser,
-          }).then((response) => {
-            const { body, status } = response;
-
+          }).then(({ body, status }) => {
             expect(status).to.eq(409);
             expect(body).to.deep.eq(userFixture.errorAlreadyExists);
           });
@@ -47,9 +44,7 @@ describe("Criação de usuários", () => {
           url: "/users",
           failOnStatusCode: false,
           body: randomUser,
-        }).then((response) => {
-          const { body, status } = response;
-
+        }).then(({ body, status }) => {
           expect(status).to.eq(400);
           expect(body).to.deep.eq(userFixture.errorEmailInvalid);
         });
@@ -64,9 +59,7 @@ describe("Criação de usuários", () => {
           url: "/users",
           failOnStatusCode: false,
           body: randomUser,
-        }).then((response) => {
-          const { body, status } = response;
-
+        }).then(({ body, status }) => {
           expect(status).to.eq(400);
           expect(body).to.deep.eq(userFixture.errorPasswordTooShort);
         });
@@ -81,9 +74,7 @@ describe("Criação de usuários", () => {
           url: "/users",
           failOnStatusCode: false,
           body: randomUser,
-        }).then((response) => {
-          const { body, status } = response;
-
+        }).then(({ body, status }) => {
           expect(status).to.eq(400);
           expect(body).to.deep.eq(userFixture.errorPasswordTooLong);
         });
@@ -102,16 +93,15 @@ describe("Consulta de usuários", () => {
           headers: {
             Authorization: `Bearer ${Cypress.env("accessToken")}`,
           },
-        }).then((response) => {
-          const { body, status } = response;
-          const users = body.slice(0, 20);
+        }).then(({ body, status }) => {
           const expectedType = Object.values(userFixture.user).map(
             (value) => typeof value
           );
+
           expect(status).to.eq(200);
           expect(body).to.be.an("array");
 
-          users.forEach((user) => {
+          body.forEach((user) => {
             Object.entries(userFixture.user).forEach(([key], i) => {
               expect(user[key]).to.be.a(expectedType[i]);
             });
@@ -132,8 +122,7 @@ describe("Consulta de usuários", () => {
             },
           });
         })
-        .then((userById) => {
-          const { body, status } = userById;
+        .then(({ body, status }) => {
           expect(status).to.eq(200);
           expect(body).to.be.deep.eq(currentUser);
         });
@@ -145,8 +134,7 @@ describe("Consulta de usuários", () => {
         method: "GET",
         url: "/users",
         failOnStatusCode: false,
-      }).then((response) => {
-        const { body, status } = response;
+      }).then(({ body, status }) => {
         expect(status).to.eq(401);
         expect(body).to.deep.eq(userFixture.errorUnauthorized);
       });
@@ -160,8 +148,7 @@ describe("Consulta de usuários", () => {
           headers: {
             Authorization: `Bearer ${Cypress.env("accessToken")}`,
           },
-        }).then((response) => {
-          const { body, status } = response;
+        }).then(({ body, status }) => {
           expect(status).to.eq(403);
           expect(body).to.deep.eq(userFixture.errorForbidden);
         });
@@ -181,9 +168,9 @@ describe("Criação de review pelo usuário", () => {
           headers: {
             Authorization: `Bearer ${Cypress.env("accessToken")}`,
           },
-        }).then((responseReviewCreated) => {
-          expect(responseReviewCreated.status).to.eq(201);
-          expect(responseReviewCreated.body).to.be.undefined;
+        }).then(({ status, body }) => {
+          expect(status).to.eq(201);
+          expect(body).to.be.undefined;
         });
       });
     });
@@ -199,8 +186,7 @@ describe("Criação de review pelo usuário", () => {
           headers: {
             Authorization: `Bearer ${Cypress.env("accessToken")}`,
           },
-        }).then((response) => {
-          const { body, status } = response;
+        }).then(({ body, status }) => {
           expect(status).to.eq(400);
           expect(body).to.deep.eq(userFixture.errorReviewMovieIdRequired);
         });
@@ -212,8 +198,7 @@ describe("Criação de review pelo usuário", () => {
         url: "users/review",
         failOnStatusCode: false,
         body: movieFixture.review,
-      }).then((response) => {
-        const { body, status } = response;
+      }).then(({ body, status }) => {
         expect(status).to.eq(401);
         expect(body).to.deep.eq(userFixture.errorUnauthorized);
       });
@@ -228,8 +213,7 @@ describe("Criação de review pelo usuário", () => {
           headers: {
             Authorization: `Bearer ${Cypress.env("accessToken")}`,
           },
-        }).then((response) => {
-          const { body, status } = response;
+        }).then(({ body, status }) => {
           expect(status).to.eq(404);
           expect(body).to.deep.eq(movieFixture.errorMovieNotFound);
         });
@@ -245,8 +229,7 @@ describe("Criação de review pelo usuário", () => {
           headers: {
             Authorization: `Bearer ${Cypress.env("accessToken")}`,
           },
-        }).then((response) => {
-          const { body, status } = response;
+        }).then(({ body, status }) => {
           expect(status).to.eq(400);
           expect(body).to.deep.eq(userFixture.errorReviewScoreInvalid);
         });
@@ -262,8 +245,7 @@ describe("Criação de review pelo usuário", () => {
           headers: {
             Authorization: `Bearer ${Cypress.env("accessToken")}`,
           },
-        }).then((response) => {
-          const { body, status } = response;
+        }).then(({ body, status }) => {
           expect(status).to.eq(400);
           expect(body).to.deep.eq(userFixture.errorReviewScoreInvalid);
         });
@@ -279,8 +261,7 @@ describe("Criação de review pelo usuário", () => {
           headers: {
             Authorization: `Bearer ${Cypress.env("accessToken")}`,
           },
-        }).then((response) => {
-          const { body, status } = response;
+        }).then(({ body, status }) => {
           expect(status).to.eq(400);
           expect(body).to.deep.eq(userFixture.errorReviewTextStringRequired);
         });
@@ -304,13 +285,14 @@ describe("Consulta de review feita pelo usuario", () => {
           headers: {
             Authorization: `Bearer ${Cypress.env("accessToken")}`,
           },
-        }).then((response) => {
-          const { body, status } = response;
+        }).then(({ body, status }) => {
+          const review = body[0];
+
           expect(status).to.eq(200);
-          expect(body).to.be.an("array"); // redundante???
-          expect(body[0].reviewType).to.be.a("number");
-          expect(body[0].id).to.be.a("number");
-          expect(body[0]).to.deep.include({
+          expect(body).to.be.an("array");
+          expect(review.reviewType).to.be.a("number");
+          expect(review.id).to.be.a("number");
+          expect(review).to.deep.include({
             ...movieFixture.review,
             movieId,
             movieTitle,
@@ -331,8 +313,8 @@ describe("Inativação de usuários", () => {
           headers: {
             Authorization: `Bearer ${Cypress.env("accessToken")}`,
           },
-        }).then((response) => {
-          expect(response.body).to.be.empty;
+        }).then(({ body }) => {
+          expect(body).to.be.empty;
         });
       });
     });

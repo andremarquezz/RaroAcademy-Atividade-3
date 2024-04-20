@@ -13,8 +13,7 @@ describe("Cadastro de filmes", () => {
             headers: {
               Authorization: `Bearer ${Cypress.env("accessToken")}`,
             },
-          }).then((responseMovieCreated) => {
-            const { body, status } = responseMovieCreated;
+          }).then(({ body, status }) => {
             expect(status).to.eq(201);
             expect(body).to.be.undefined;
           });
@@ -36,8 +35,7 @@ describe("Cadastro de filmes", () => {
             headers: {
               Authorization: `Bearer ${Cypress.env("accessToken")}`,
             },
-          }).then((response) => {
-            const { body, status } = response;
+          }).then(({ body, status }) => {
             expect(status).to.eq(400);
             expect(body).to.deep.eq(movieFixture.errorTitleInvalid);
           });
@@ -56,8 +54,7 @@ describe("Cadastro de filmes", () => {
             headers: {
               Authorization: `Bearer ${Cypress.env("accessToken")}`,
             },
-          }).then((response) => {
-            const { body, status } = response;
+          }).then(({ body, status }) => {
             expect(status).to.eq(400);
             expect(body).to.deep.eq(movieFixture.errorGenreInvalid);
           });
@@ -76,8 +73,7 @@ describe("Cadastro de filmes", () => {
             headers: {
               Authorization: `Bearer ${Cypress.env("accessToken")}`,
             },
-          }).then((response) => {
-            const { body, status } = response;
+          }).then(({ body, status }) => {
             expect(status).to.eq(400);
             expect(body).to.deep.eq(movieFixture.errorDescriptionInvalid);
           });
@@ -97,8 +93,7 @@ describe("Cadastro de filmes", () => {
             headers: {
               Authorization: `Bearer ${Cypress.env("accessToken")}`,
             },
-          }).then((response) => {
-            const { body, status } = response;
+          }).then(({ body, status }) => {
             expect(status).to.eq(400);
             expect(body).to.deep.eq(movieFixture.errorDurationInvalid);
           });
@@ -118,8 +113,7 @@ describe("Cadastro de filmes", () => {
             headers: {
               Authorization: `Bearer ${Cypress.env("accessToken")}`,
             },
-          }).then((response) => {
-            const { body, status } = response;
+          }).then(({ body, status }) => {
             expect(status).to.eq(400);
             expect(body).to.deep.eq(movieFixture.errorReleaseYearInvalid);
           });
@@ -134,8 +128,7 @@ describe("Cadastro de filmes", () => {
           url: "/movies",
           failOnStatusCode: false,
           body: randomMovie,
-        }).then((response) => {
-          const { body, status } = response;
+        }).then(({ body, status }) => {
           expect(status).to.eq(401);
           expect(body).to.deep.eq(movieFixture.errorUnauthorized);
         });
@@ -152,8 +145,7 @@ describe("Cadastro de filmes", () => {
             headers: {
               Authorization: `Bearer ${Cypress.env("accessToken")}`,
             },
-          }).then((response) => {
-            const { body, status } = response;
+          }).then(({ body, status }) => {
             expect(status).to.eq(403);
             expect(body).to.deep.eq(movieFixture.errorForbidden);
           });
@@ -211,16 +203,15 @@ describe("Consulta de filmes", () => {
             },
           }).then(() => {
             cy.request("GET", `/movies/search?title=${randomMovie.title}`).then(
-              (responseMovie) => {
-                const { body, status } = responseMovie;
-                const movie = body[0];
+              ({ body, status }) => {
+                const movieBody = body[0];
 
                 const expectedType = Object.values(movieFixture.movie).map(
                   (value) => (value === null ? "null" : typeof value)
                 );
 
                 expect(status).to.eq(200);
-                expect(movie).to.deep.include(randomMovie);
+                expect(movieBody).to.deep.include(randomMovie);
 
                 Object.entries(movieFixture.movie).forEach(([key], i) => {
                   expect(movie[key]).to.be.a(expectedType[i]);
@@ -233,8 +224,7 @@ describe("Consulta de filmes", () => {
     });
     it("Deve retornar um filme especifico pela consulta por id", () => {
       cy.createAndFetchMovie().then((movie) => {
-        cy.request("GET", `/movies/${movie.id}`).then((responseMovieById) => {
-          const { body, status } = responseMovieById;
+        cy.request("GET", `/movies/${movie.id}`).then(({ body, status }) => {
           delete movie.totalRating;
 
           expect(status).to.eq(200);
@@ -274,9 +264,7 @@ describe("Consulta de filmes", () => {
   });
   describe("Quando a consulta falha", () => {
     it("Deve retornar um corpo vazio quando não encontrar o filme pelo id", () => {
-      cy.request("GET", "/movies/5645646").then((responseMovieById) => {
-        const { body, status } = responseMovieById;
-
+      cy.request("GET", "/movies/5645646").then(({ body, status }) => {
         expect(status).to.eq(200);
         expect(body).to.be.string;
         expect(body).to.be.empty;
@@ -284,9 +272,7 @@ describe("Consulta de filmes", () => {
     });
     it("Deve retornar um corpo vazio quando não encontra o filme pelo titulo", () => {
       cy.request("GET", "movies/search?title=yujfhdgjfgjfgjhfgj").then(
-        (responseMovieById) => {
-          const { body, status } = responseMovieById;
-
+        ({ body, status }) => {
           expect(status).to.eq(200);
           expect(body).to.be.empty;
         }
@@ -312,8 +298,7 @@ describe("Atualização de filmes", () => {
           headers: {
             Authorization: `Bearer ${Cypress.env("accessToken")}`,
           },
-        }).then((responseMovieUpdated) => {
-          const { body, status } = responseMovieUpdated;
+        }).then(({ body, status }) => {
           expect(status).to.eq(204);
           expect(body).to.be.undefined;
         });
@@ -336,8 +321,7 @@ describe("Atualização de filmes", () => {
           headers: {
             Authorization: `Bearer ${Cypress.env("accessToken")}`,
           },
-        }).then((response) => {
-          const { body, status } = response;
+        }).then(({ body, status }) => {
           expect(status).to.eq(400);
           expect(body).to.deep.eq(movieFixture.errorUpdateTitleInvalid);
         });
@@ -358,8 +342,7 @@ describe("Atualização de filmes", () => {
           headers: {
             Authorization: `Bearer ${Cypress.env("accessToken")}`,
           },
-        }).then((response) => {
-          const { body, status } = response;
+        }).then(({ body, status }) => {
           expect(status).to.eq(400);
           expect(body).to.deep.eq(movieFixture.errorUpdateTitleInvalid);
         });
@@ -375,8 +358,7 @@ describe("Atualização de filmes", () => {
           headers: {
             Authorization: `Bearer ${Cypress.env("accessToken")}`,
           },
-        }).then((response) => {
-          const { body, status } = response;
+        }).then(({ body, status }) => {
           expect(status).to.eq(404);
           expect(body).to.deep.eq(movieFixture.errorMovieNotFound);
         });

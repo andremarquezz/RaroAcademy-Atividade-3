@@ -8,8 +8,7 @@ describe("Validação da Autenticação", () => {
           cy.request("POST", "/auth/login", {
             email: randomUser.email,
             password: randomUser.password,
-          }).then((responseAuth) => {
-            const { body, status } = responseAuth;
+          }).then(({ body, status }) => {
             expect(status).to.eq(200);
             expect(body.accessToken).to.be.a("string");
           });
@@ -29,8 +28,7 @@ describe("Validação da Autenticação", () => {
               email: "emailinvalido",
               password: randomUser.password,
             },
-          }).then((response) => {
-            const { body, status } = response;
+          }).then(({ body, status }) => {
             expect(status).to.eq(400);
             expect(body).to.deep.eq(authFixture.errorEmailInvalid);
           });
@@ -48,8 +46,7 @@ describe("Validação da Autenticação", () => {
               email: randomUser.email,
               password: "ruimDeinvadirk",
             },
-          }).then((response) => {
-            const { body, status } = response;
+          }).then(({ body, status }) => {
             expect(status).to.eq(401);
             expect(body).to.deep.eq(authFixture.errorUnauthorized);
           });
