@@ -4,7 +4,8 @@
   "description": "Testes automatizados de API para as funcionalidades de cadastro e consulta de usuarios e filmes em uma aplicação.",
   "main": "index.js",
   "scripts": {
-    "test": "cypress run"
+    "test": "cypress open",
+    "test:headless": "cypress run"
   },
   "keywords": [],
   "author": "Jey",
