@@ -245,25 +245,30 @@ describe("Consulta de filmes", () => {
         });
       });
     });
-    it.only("Deve retornar a review de um filme feita por um usuário", () => {
+    it("Deve retornar a review de um filme feita por um usuário", () => {
       cy.createReview().then((movie) => {
-        const { body, status } = movie;
+        const {
+          body: { reviews, audienceScore },
+          status,
+        } = movie;
         const user = {
           id: Cypress.env("currentUser").id,
           name: Cypress.env("currentUser").name,
           type: Cypress.env("currentUser").type,
         };
+        const review = reviews[0];
+        const reviewUpdatedAt = reviews[0].updatedAt;
 
-        const isWithinOneMinute = isWithinOneMinuteDifference(
-          body.reviews[0].updatedAt
-        );
+        const isWithinOneMinute = isWithinOneMinuteDifference(reviewUpdatedAt);
 
         expect(status).to.eq(200);
+        expect(reviews).to.be.an("array");
         expect(isWithinOneMinute).to.be.true;
-        expect(body.reviews[0]).to.deep.include(movieFixture.review);
-        expect(body.reviews[0].user).to.deep.eq(user);
-        expect(body.reviews[0].score).to.be.eq(5);
-        expect(body.audienceScore).to.be.eq(5);
+        expect(review).to.deep.include(movieFixture.review);
+        expect(review.user).to.deep.eq(user);
+        expect(review.score).to.be.eq(5);
+        expect(audienceScore).to.be.eq(5);
+        expect(review.reviewType).to.be.a("number");
       });
     });
   });
@@ -274,7 +279,7 @@ describe("Consulta de filmes", () => {
 
         expect(status).to.eq(200);
         expect(body).to.be.string;
-        expect(body).to.eq("");
+        expect(body).to.be.empty;
       });
     });
     it("Deve retornar um corpo vazio quando não encontra o filme pelo titulo", () => {
@@ -316,6 +321,28 @@ describe("Atualização de filmes", () => {
     });
   });
   describe("Quando a atualização falha", () => {
+    it("Deve retornar erro 400 (Bad Request) ao tentar atualizar um filme com informação de título incorreta", () => {
+      cy.createAndFetchMovie().then((movie) => {
+        const newMovie = {
+          ...movie,
+          title: "",
+        };
+
+        cy.request({
+          method: "PUT",
+          url: `/movies/${movie.id}`,
+          body: newMovie,
+          failOnStatusCode: false,
+          headers: {
+            Authorization: `Bearer ${Cypress.env("accessToken")}`,
+          },
+        }).then((response) => {
+          const { body, status } = response;
+          expect(status).to.eq(400);
+          expect(body).to.deep.eq(movieFixture.errorUpdateTitleInvalid);
+        });
+      });
+    });
     it("Deve retornar erro 400 (Bad Request) ao tentar atualizar um filme com informação de título incorreta", () => {
       cy.createAndFetchMovie().then((movie) => {
         const newMovie = {
