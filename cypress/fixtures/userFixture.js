@@ -35,4 +35,22 @@ export const userFixture = {
     message: "Forbidden",
     statusCode: 403,
   },
+  errorReviewMovieIdRequired: {
+    message: [
+      "movieId must be an integer number",
+      "movieId should not be empty",
+    ],
+    error: "Bad Request",
+    statusCode: 400,
+  },
+  errorReviewScoreInvalid: {
+    message: "Score should be between 1 and 5",
+    error: "Bad Request",
+    statusCode: 400,
+  },
+  errorReviewTextStringRequired: {
+    message: ["reviewText must be a string"],
+    error: "Bad Request",
+    statusCode: 400,
+  },
 };

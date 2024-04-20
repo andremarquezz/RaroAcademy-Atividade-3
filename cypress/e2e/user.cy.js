@@ -1,3 +1,4 @@
+import { movieFixture } from "../fixtures/movieFixture";
 import { userFixture } from "../fixtures/userFixture";
 
 describe("Criação de usuários", () => {
@@ -168,17 +169,171 @@ describe("Consulta de usuários", () => {
     });
   });
 });
-describe("Inativação de usuários", () => {
-  it("Deve inativar um usuário", () => {
-    cy.adminLogin().then(() => {
+
+describe("Criação de review pelo usuário", () => {
+  describe("Quando a criação é bem sucedida", () => {
+    it("Deve criar uma review", () => {
+      cy.createAndFetchMovie().then((movie) => {
+        cy.request({
+          method: "POST",
+          url: "users/review",
+          body: { ...movieFixture.review, movieId: movie.id },
+          headers: {
+            Authorization: `Bearer ${Cypress.env("accessToken")}`,
+          },
+        }).then((responseReviewCreated) => {
+          expect(responseReviewCreated.status).to.eq(201);
+          expect(responseReviewCreated.body).to.be.undefined;
+        });
+      });
+    });
+  });
+  describe.only("Quando a criação falha", () => {
+    it("Deve retornar erro 400 (Bad Request) ao tentar criar uma review sem informar o movieId", () => {
+      cy.adminLogin().then(() => {
+        cy.request({
+          method: "POST",
+          url: "users/review",
+          failOnStatusCode: false,
+          body: movieFixture.review,
+          headers: {
+            Authorization: `Bearer ${Cypress.env("accessToken")}`,
+          },
+        }).then((response) => {
+          const { body, status } = response;
+          expect(status).to.eq(400);
+          expect(body).to.deep.eq(userFixture.errorReviewMovieIdRequired);
+        });
+      });
+    });
+    it("Deve retornar erro 401 (Unauthorized) ao tentar criar uma review sem autorização", () => {
       cy.request({
-        method: "PATCH",
-        url: "/users/inactivate",
-        headers: {
-          Authorization: `Bearer ${Cypress.env("accessToken")}`,
-        },
+        method: "POST",
+        url: "users/review",
+        failOnStatusCode: false,
+        body: movieFixture.review,
       }).then((response) => {
-        expect(response.body).to.be.empty;
+        const { body, status } = response;
+        expect(status).to.eq(401);
+        expect(body).to.deep.eq(userFixture.errorUnauthorized);
+      });
+    });
+    it("Deve retornar erro 404 (Not Found) ao tentar criar uma review para um filme inexistente", () => {
+      cy.adminLogin().then(() => {
+        cy.request({
+          method: "POST",
+          url: "users/review",
+          failOnStatusCode: false,
+          body: { ...movieFixture.review, movieId: 0 },
+          headers: {
+            Authorization: `Bearer ${Cypress.env("accessToken")}`,
+          },
+        }).then((response) => {
+          const { body, status } = response;
+          expect(status).to.eq(404);
+          expect(body).to.deep.eq(movieFixture.errorMovieNotFound);
+        });
+      });
+    });
+    it("Deve retornar 400 (Bad Request) ao tentar criar uma review com score maior que 5", () => {
+      cy.createAndFetchMovie().then((movie) => {
+        cy.request({
+          method: "POST",
+          url: "users/review",
+          failOnStatusCode: false,
+          body: { ...movieFixture.review, movieId: movie.id, score: 6 },
+          headers: {
+            Authorization: `Bearer ${Cypress.env("accessToken")}`,
+          },
+        }).then((response) => {
+          const { body, status } = response;
+          expect(status).to.eq(400);
+          expect(body).to.deep.eq(userFixture.errorReviewScoreInvalid);
+        });
+      });
+    });
+    it("Deve retornar 400 (Bad Request) ao tentar criar uma review com score menor que 1", () => {
+      cy.createAndFetchMovie().then((movie) => {
+        cy.request({
+          method: "POST",
+          url: "users/review",
+          failOnStatusCode: false,
+          body: { ...movieFixture.review, movieId: movie.id, score: 0 },
+          headers: {
+            Authorization: `Bearer ${Cypress.env("accessToken")}`,
+          },
+        }).then((response) => {
+          const { body, status } = response;
+          expect(status).to.eq(400);
+          expect(body).to.deep.eq(userFixture.errorReviewScoreInvalid);
+        });
+      });
+    });
+    it("Deve retornar 400 (Bad Request) ao tentar criar uma review sem informar um texto de review como string", () => {
+      cy.createAndFetchMovie().then((movie) => {
+        cy.request({
+          method: "POST",
+          url: "users/review",
+          failOnStatusCode: false,
+          body: { ...movieFixture.review, movieId: movie.id, reviewText: null },
+          headers: {
+            Authorization: `Bearer ${Cypress.env("accessToken")}`,
+          },
+        }).then((response) => {
+          const { body, status } = response;
+          expect(status).to.eq(400);
+          expect(body).to.deep.eq(userFixture.errorReviewTextStringRequired);
+        });
+      });
+    });
+  });
+});
+
+describe("Consulta de review feita pelo usuario", () => {
+  describe("Quando a consulta é bem sucedida", () => {
+    it("Deve consultar todas as reviews feitas pelo usuário", () => {
+      let movieId;
+      let movieTitle;
+      cy.createReview().then((responseMovie) => {
+        movieId = responseMovie.body.id;
+        movieTitle = responseMovie.body.title;
+
+        cy.request({
+          method: "GET",
+          url: "/users/review/all",
+          headers: {
+            Authorization: `Bearer ${Cypress.env("accessToken")}`,
+          },
+        }).then((response) => {
+          const { body, status } = response;
+          expect(status).to.eq(200);
+          expect(body).to.be.an("array");
+          expect(body[0].reviewType).to.be.a("number");
+          expect(body[0].id).to.be.a("number");
+          expect(body[0]).to.deep.include({
+            ...movieFixture.review,
+            movieId,
+            movieTitle,
+          });
+        });
+      });
+    });
+  });
+});
+
+describe("Inativação de usuários", () => {
+  describe("Quando a inativação é bem sucedida", () => {
+    it("Deve inativar um usuário", () => {
+      cy.adminLogin().then(() => {
+        cy.request({
+          method: "PATCH",
+          url: "/users/inactivate",
+          headers: {
+            Authorization: `Bearer ${Cypress.env("accessToken")}`,
+          },
+        }).then((response) => {
+          expect(response.body).to.be.empty;
+        });
       });
     });
   });
