@@ -52,8 +52,8 @@ Cypress.Commands.add("createReview", () => {
   });
 });
 
-Cypress.Commands.add("deleteMovie", () => {
-  const id = Cypress.env("currentMovie").id;
+Cypress.Commands.add("deleteMovie", (idMovie) => {
+  const id = idMovie || Cypress.env("currentMovie").id;
   const token = `Bearer ${Cypress.env("accessToken")}`;
 
   cy.request({
