@@ -52,3 +52,28 @@ Cypress.Commands.add("adminLogin", () => {
       });
   });
 });
+
+Cypress.Commands.add("deleteUser", () => {
+  const id = Cypress.env("currentUser").id;
+  const type = Cypress.env("currentUser").type;
+
+  if (type === 0) {
+    cy.request({
+      method: "PATCH",
+      url: "users/inactivate",
+      headers: {
+        Authorization: `Bearer ${Cypress.env("accessToken")}`,
+      },
+    });
+  }
+
+  if (type === 1) {
+    cy.request({
+      method: "DELETE",
+      url: `/users/${id}`,
+      headers: {
+        Authorization: `Bearer ${Cypress.env("accessToken")}`,
+      },
+    });
+  }
+});

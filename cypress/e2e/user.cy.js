@@ -9,10 +9,11 @@ describe("Criação de usuários", () => {
           delete randomUser.password;
 
           expect(status).to.eq(201);
-          expect(body).to.deep.include(randomUser);
           expect(body.id).to.be.a("number");
           expect(body.type).to.eq(0);
           expect(body.active).to.be.true;
+
+          expect(body).to.deep.include(randomUser);
         });
       });
     });
@@ -85,26 +86,32 @@ describe("Criação de usuários", () => {
 
 describe("Consulta de usuários", () => {
   describe("Quando a consulta é bem sucedida", () => {
+    beforeEach(() => {
+      cy.adminLogin();
+    });
+
+    afterEach(() => {
+      cy.deleteUser();
+    });
+
     it("Deve consultar todos os usuários", () => {
-      cy.adminLogin().then(() => {
-        cy.request({
-          method: "GET",
-          url: "/users",
-          headers: {
-            Authorization: `Bearer ${Cypress.env("accessToken")}`,
-          },
-        }).then(({ body, status }) => {
-          const userType = Object.values(userFixture.user).map(
-            (value) => typeof value
-          );
+      cy.request({
+        method: "GET",
+        url: "/users",
+        headers: {
+          Authorization: `Bearer ${Cypress.env("accessToken")}`,
+        },
+      }).then(({ body, status }) => {
+        const userType = Object.values(userFixture.user).map(
+          (value) => typeof value
+        );
 
-          expect(status).to.eq(200);
-          expect(body).to.be.an("array");
+        expect(status).to.eq(200);
+        expect(body).to.be.an("array");
 
-          body.forEach((user) => {
-            Object.entries(userFixture.user).forEach(([key], i) => {
-              expect(user[key]).to.be.a(userType[i]);
-            });
+        body.forEach((user) => {
+          Object.entries(userFixture.user).forEach(([key], i) => {
+            expect(user[key]).to.be.a(userType[i]);
           });
         });
       });
@@ -112,20 +119,17 @@ describe("Consulta de usuários", () => {
 
     it("Deve consultar um usuário específico", () => {
       const currentUser = Cypress.env("currentUser");
-      cy.adminLogin()
-        .then(() => {
-          cy.request({
-            method: "GET",
-            url: `/users/${currentUser.id}`,
-            headers: {
-              Authorization: `Bearer ${Cypress.env("accessToken")}`,
-            },
-          });
-        })
-        .then(({ body, status }) => {
-          expect(status).to.eq(200);
-          expect(body).to.be.deep.eq(currentUser);
-        });
+
+      cy.request({
+        method: "GET",
+        url: `/users/${currentUser.id}`,
+        headers: {
+          Authorization: `Bearer ${Cypress.env("accessToken")}`,
+        },
+      }).then(({ body, status }) => {
+        expect(status).to.eq(200);
+        expect(body).to.be.deep.eq(currentUser);
+      });
     });
   });
   describe("Quando a consulta falha", () => {
@@ -140,25 +144,33 @@ describe("Consulta de usuários", () => {
       });
     });
     it("Deve retornar erro 403 (Forbidden) ao tentar consultar usuários sem ser administrador", () => {
-      cy.userLogin().then(() => {
-        cy.request({
-          method: "GET",
-          url: "/users",
-          failOnStatusCode: false,
-          headers: {
-            Authorization: `Bearer ${Cypress.env("accessToken")}`,
-          },
-        }).then(({ body, status }) => {
-          expect(status).to.eq(403);
-          expect(body).to.deep.eq(userFixture.errorForbidden);
+      cy.userLogin()
+        .then(() => {
+          cy.request({
+            method: "GET",
+            url: "/users",
+            failOnStatusCode: false,
+            headers: {
+              Authorization: `Bearer ${Cypress.env("accessToken")}`,
+            },
+          }).then(({ body, status }) => {
+            expect(status).to.eq(403);
+            expect(body).to.deep.eq(userFixture.errorForbidden);
+          });
+        })
+        .then(() => {
+          cy.deleteUser();
         });
-      });
     });
   });
 });
 
 describe("Criação de review pelo usuário", () => {
   describe("Quando a criação é bem sucedida", () => {
+    afterEach(() => {
+      cy.deleteUser();
+    });
+
     it("Deve criar uma review", () => {
       cy.createAndFetchMovie().then((movie) => {
         cy.request({
@@ -176,6 +188,10 @@ describe("Criação de review pelo usuário", () => {
     });
   });
   describe("Quando a criação falha", () => {
+    afterEach(() => {
+      cy.deleteUser();
+    });
+
     it("Deve retornar erro 400 (Bad Request) ao tentar criar uma review sem informar o movieId", () => {
       cy.adminLogin().then(() => {
         cy.request({
@@ -192,17 +208,7 @@ describe("Criação de review pelo usuário", () => {
         });
       });
     });
-    it("Deve retornar erro 401 (Unauthorized) ao tentar criar uma review sem autorização", () => {
-      cy.request({
-        method: "POST",
-        url: "users/review",
-        failOnStatusCode: false,
-        body: movieFixture.review,
-      }).then(({ body, status }) => {
-        expect(status).to.eq(401);
-        expect(body).to.deep.eq(userFixture.errorUnauthorized);
-      });
-    });
+
     it("Deve retornar erro 404 (Not Found) ao tentar criar uma review para um filme inexistente", () => {
       cy.adminLogin().then(() => {
         cy.request({
@@ -270,35 +276,53 @@ describe("Criação de review pelo usuário", () => {
   });
 });
 
+describe("Quando a criação falha", () => {
+  it("Deve retornar erro 401 (Unauthorized) ao tentar criar uma review sem autorização", () => {
+    cy.request({
+      method: "POST",
+      url: "users/review",
+      failOnStatusCode: false,
+      body: movieFixture.review,
+    }).then(({ body, status }) => {
+      expect(status).to.eq(401);
+      expect(body).to.deep.eq(userFixture.errorUnauthorized);
+    });
+  });
+});
+
 describe("Consulta de review feita pelo usuario", () => {
   describe("Quando a consulta é bem sucedida", () => {
     it("Deve consultar todas as reviews feitas pelo usuário", () => {
       let movieId;
       let movieTitle;
-      cy.createReview().then((responseMovie) => {
-        movieId = responseMovie.body.id;
-        movieTitle = responseMovie.body.title;
+      cy.createReview()
+        .then((responseMovie) => {
+          movieId = responseMovie.body.id;
+          movieTitle = responseMovie.body.title;
 
-        cy.request({
-          method: "GET",
-          url: "/users/review/all",
-          headers: {
-            Authorization: `Bearer ${Cypress.env("accessToken")}`,
-          },
-        }).then(({ body, status }) => {
-          const review = body[0];
+          cy.request({
+            method: "GET",
+            url: "/users/review/all",
+            headers: {
+              Authorization: `Bearer ${Cypress.env("accessToken")}`,
+            },
+          }).then(({ body, status }) => {
+            const review = body[0];
 
-          expect(status).to.eq(200);
-          expect(body).to.be.an("array");
-          expect(review.reviewType).to.be.a("number");
-          expect(review.id).to.be.a("number");
-          expect(review).to.deep.include({
-            ...movieFixture.review,
-            movieId,
-            movieTitle,
+            expect(status).to.eq(200);
+            expect(body).to.be.an("array");
+            expect(review.reviewType).to.be.a("number");
+            expect(review.id).to.be.a("number");
+            expect(review).to.deep.include({
+              ...movieFixture.review,
+              movieId,
+              movieTitle,
+            });
           });
+        })
+        .then(() => {
+          cy.deleteUser();
         });
-      });
     });
   });
 });
