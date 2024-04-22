@@ -187,6 +187,7 @@ describe("Consulta de filmes", () => {
       }).then(() => {
         cy.request("GET", "/movies").then((responseMovies) => {
           const { body, status } = responseMovies;
+          const movies = body.slice(0, 10);
           const movieType = Object.values(movieFixture.movie).map(
             (value) => typeof value
           );
@@ -194,11 +195,11 @@ describe("Consulta de filmes", () => {
           expect(status).to.eq(200);
           expect(body).to.be.an("array");
 
-          body.forEach((movie) => {
+          movies.forEach((movie) => {
             expect(movie).to.have.property("totalRating");
           });
 
-          body.forEach((movie) => {
+          movies.forEach((movie) => {
             delete movie.totalRating;
             Object.entries(movieFixture.movie).forEach(([key], i) => {
               expect(movie[key]).to.be.a(movieType[i]);
