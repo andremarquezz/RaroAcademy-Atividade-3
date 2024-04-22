@@ -25,8 +25,9 @@ Cypress.Commands.add("createAndFetchMovie", () => {
         },
       }).then(() => {
         cy.request("GET", `/movies/search?title=${randomMovie.title}`).then(
-          (responseMovie) => {
-            return responseMovie.body[0];
+          ({ body }) => {
+            Cypress.env("currentMovie", body[0]);
+            return body[0];
           }
         );
       });
@@ -48,5 +49,18 @@ Cypress.Commands.add("createReview", () => {
         return responseMovie;
       });
     });
+  });
+});
+
+Cypress.Commands.add("deleteMovie", () => {
+  const id = Cypress.env("currentMovie").id;
+  const token = `Bearer ${Cypress.env("accessToken")}`;
+
+  cy.request({
+    method: "DELETE",
+    url: `/movies/${id}`,
+    headers: {
+      Authorization: token,
+    },
   });
 });
